@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jeopardy Trainer</title>
+<link rel="stylesheet" href="jeopardy/styles.css">
+
+<link href = "https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel = "stylesheet">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="jeopardy/timer.js"></script>
+<script>
+
+$(document).ready(() => {
+    check_login();
+    get_question('similar');
+    $('#similarQuestion').click(() => {
+        evaluate_answer();
+        get_question('similar');
+    });
+
+    $('#randomQuestion').click(() => {
+        evaluate_answer();
+        get_question('question');
+    });
+
+
+});
+
+isVisibleKey = (keyCode) => {
+    // 0 - z [48 - 90], numpad 0 - divide [96 - 111], semicolon 186
+    return (keyCode > 47 && keyCode < 91) || (keyCode > 95 && keyCode < 112) || (keyCode > 185)
+}
+
+no_backspaces = (event) => {
+    if(event.keyCode == 13) {
+        evaluate_answer();
+    }
+    // Stop the download timer on key enter
+    if (isVisibleKey(event.keyCode)) {
+        stop_timer();
+    }
+    if (event.keyCode == 8) event.preventDefault();
+} 
+
+let currentQ = {};
+
+populate_question = (result) => {
+    stop_timer();
+    $('#newQuestion').removeClass('selected');
+    currentQ = JSON.parse(result);
+    $('#category').html(currentQ['category']);
+    $('#clue').html(currentQ['clue']);
+    $('#answer').val('')
+    start_timer();
+}
+
+normalize = (dirtyString) => {
+    dirtyString = dirtyString.toLowerCase().trim();
+    if(dirtyString[dirtyString.length-1] === 's') {
+        dirtyString = dirtyString.slice(0, dirtyString.length-1)
+    }
+    return dirtyString.replace(/[aeiou.,!()]/gi, '');
+};
+
+show_answer = () => {
+    $('#result').html(currentQ.answer)
+};
+
+send_answer = (correct) => {
+    $.ajax({
+        type: 'POST',
+        url: 'http://127.0.0.1:5000/question',
+        data: JSON.stringify({ question_id: currentQ.id, correct: correct }),
+        contentType: "application/json; charset=utf-8",
+        success: (response) => {
+            console.log(response);
+        },
+    });
+};
+
+correct = () => {
+    $('#result').addClass('correct');
+    send_answer(1);
+};
+
+incorrect = () => {
+    $('#result').addClass('incorrect');
+    send_answer(0);
+};
+
+mark_question = (callback) => {
+    $('#result').removeClass();
+    $('#newQuestion').addClass('selected');
+    callback()
+}
+
+evaluate_answer = () => {
+    show_answer();
+    const userAnswer = normalize($('#answer').val())
+    if(userAnswer === normalize(currentQ.answer)) {
+        mark_question(correct);
+    } else {
+        mark_question(incorrect);
+    }
+}
+
+function get_question(questionType) {
+    $.ajax({
+        url: `http://127.0.0.1:5000/${questionType}`,
+        success: populate_question,
+    });
+}
+
+</script>
+</head>
+<body>
+<div id="main">
+        <div id="progressbar" class="center"></div>
+        <div id="question-wrapper" class="center">
+            <div id="category"></div>
+        <div id="clue"></div>
+        </div>
+        <div class="center answer-wrapper">
+                <input id="answer" onkeydown="no_backspaces(event);" autofocus></input> <button id="similarQuestion">Torture Me</button> <button id="randomQuestion">Random</button>
+        </div>
+        <div id="result" class="center"></div>
+</div>
+
+
+<!-- LOGIN DIALOG --> 
+<div id = "login-dialog" title = "Log Into the Jeopardy Trainer">
+    <form>
+        <fieldset>
+            <label for="name">Name</label>
+            <input type="text" name="name" id="name"><br>
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password">
+
+            <!-- Allow form submission with keyboard without duplicating the dialog button -->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+<script src="jeopardy/login.js"></script>
+
+</body>
+
+</html>
+
+  
