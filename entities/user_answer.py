@@ -9,7 +9,7 @@ class UserAnswer:
         self.id = id
 
     def save(self, db):
-        db.cur.execute("INSERT INTO user_answers (user_id, question_id, correct) VALUES (%s, %s, %s)", (self.user.id, self.question_id, self.correct))
+        db.cur.execute("INSERT INTO app_user_answers (user_id, question_id, correct) VALUES (%s, %s, %s)", (self.user.id, self.question_id, self.correct))
         db.conn.commit()
         self.id = db.cur.lastrowid
     

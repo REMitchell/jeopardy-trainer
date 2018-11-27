@@ -6,10 +6,16 @@
 <title>Jeopardy Trainer</title>
 <link rel="stylesheet" href="jeopardy/styles.css">
 
+<!--
 <link href = "https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel = "stylesheet">
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+-->
+<script src="jeopardy/jquery-1.12.0.min-v=1.3.js"></script>
+<script src="jeopardy/jquery-ui-1.9.1.custom.min.js"></script>
+<link rel="stylesheet" href="jeopardy/jquery-ui.css">
+
 <script src="jeopardy/timer.js"></script>
 <script>
 
@@ -17,16 +23,14 @@ $(document).ready(() => {
     check_login();
     get_question('similar');
     $('#similarQuestion').click(() => {
-        evaluate_answer();
+        //evaluate_answer();
         get_question('similar');
     });
 
     $('#randomQuestion').click(() => {
-        evaluate_answer();
+        //evaluate_answer();
         get_question('question');
     });
-
-
 });
 
 isVisibleKey = (keyCode) => {
@@ -72,7 +76,7 @@ show_answer = () => {
 send_answer = (correct) => {
     $.ajax({
         type: 'POST',
-        url: 'http://127.0.0.1:5000/question',
+        url: 'question',
         data: JSON.stringify({ question_id: currentQ.id, correct: correct }),
         contentType: "application/json; charset=utf-8",
         success: (response) => {
@@ -92,12 +96,16 @@ incorrect = () => {
 };
 
 mark_question = (callback) => {
-    $('#result').removeClass();
+    $('#result').removeClass('correct');
+    $('#result').removeClass('incorrect');
     $('#newQuestion').addClass('selected');
     callback()
 }
 
 evaluate_answer = () => {
+    if(!currentQ.answer) {
+        return;
+    }
     show_answer();
     const userAnswer = normalize($('#answer').val())
     if(userAnswer === normalize(currentQ.answer)) {
@@ -109,7 +117,7 @@ evaluate_answer = () => {
 
 function get_question(questionType) {
     $.ajax({
-        url: `http://127.0.0.1:5000/${questionType}`,
+        url: `${questionType}`,
         success: populate_question,
     });
 }

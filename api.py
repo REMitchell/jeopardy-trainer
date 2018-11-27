@@ -15,7 +15,6 @@ app = Flask(__name__)
 CORS(app)
 
 jeopardyDB = Database('jeopardy')
-appDB = Database('jeopardy_app')
 
 ui_root = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ui')
 
@@ -29,7 +28,7 @@ def check_session(request):
     if 'session' not in request.cookies:
         raise Unauthorized('You need to log in')
     user = User(session=request.cookies['session'])
-    if user.check_session(appDB):
+    if user.check_session(jeopardyDB):
         return user
     raise Unauthorized('Invalid session')
 
@@ -44,7 +43,7 @@ def ui_proxy(path):
 @app.route('/login', methods=['POST'])
 def login():
     user = User(request.form['name'], request.form['password'])
-    if(user.login(appDB)):
+    if(user.login(jeopardyDB)):
         resp = make_response(json.dumps({}))
         resp.set_cookie('session', value=user.session)
         return resp
@@ -54,7 +53,7 @@ def login():
 def mark_question():
     user = check_session(request)
     user_answer = UserAnswer(user, request.json['question_id'], request.json['correct'])
-    user_answer.save(appDB)
+    user_answer.save(jeopardyDB)
     return jsonify(user_answer.to_dict())
 
 @app.route('/question', methods=['GET'])
@@ -66,7 +65,7 @@ def get_question():
 @app.route('/similar', methods=['GET'])
 def get_similar():
     user = check_session(request)
-    similar_questions = SimilarQuestions(user, jeopardyDB, appDB)
+    similar_questions = SimilarQuestions(user, jeopardyDB)
     return similar_questions.get_latest_wrong()
 
 if __name__ == '__main__':

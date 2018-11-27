@@ -15,9 +15,9 @@ class User:
 
     def save(self, db):
         try:
-            db.execute("SELECT * FROM users WHERE name=%s", (self.name))
+            db.execute("SELECT * FROM app_users WHERE name=%s", (self.name))
             if db.cur.rowcount == 0:
-                db.execute("INSERT INTO users (name) VALUES (%s)", (self.name))
+                db.execute("INSERT INTO app_users (name) VALUES (%s)", (self.name))
                 db.conn.commit()
                 self.id = db.cur.lastrowid
             else:
@@ -29,7 +29,7 @@ class User:
         return self
 
     def check_session(self, db):
-        db.execute('SELECT * FROM users WHERE session = %s', (self.session))
+        db.execute('SELECT * FROM app_users WHERE session = %s', (self.session))
         if db.cur.rowcount == 0:
             return False
         else:
@@ -39,7 +39,7 @@ class User:
             return True
 
     def login(self, db):
-        db.execute('SELECT * FROM users WHERE name = %s AND password = %s', 
+        db.execute('SELECT * FROM app_users WHERE name = %s AND password = %s', 
             (self.name, hashlib.sha256(bytearray(self.password, 'UTF-8')).hexdigest()))
         if db.cur.rowcount == 0:
             print(hashlib.sha256(bytearray(self.password, 'UTF-8')).hexdigest())
@@ -48,16 +48,16 @@ class User:
             self.id = db.cur.fetchall()[0]['id']
             # Create session variable
             self.session = uuid.uuid4().hex
-            db.execute('UPDATE users SET session = %s WHERE id = %s', (self.session, self.id))
+            db.execute('UPDATE app_users SET session = %s WHERE id = %s', (self.session, self.id))
             db.conn.commit()
             return True
             
     def logout(self, db):
-        db.execute('UPDATE users SET session = NULL WHERE name = %s', (self.name))
+        db.execute('UPDATE app_users SET session = NULL WHERE name = %s', (self.name))
         db.conn.commit()
 
     def get_latest_wrong(self, db):
-        db.execute('SELECT question_id FROM user_answers WHERE user_id = %s AND correct=0 ORDER BY updated DESC LIMIT 10', (self.id))
+        db.execute('SELECT question_id FROM app_user_answers WHERE user_id = %s AND correct=0 ORDER BY updated DESC LIMIT 10', (self.id))
         incorrectIds = db.cur.fetchall()
         return [UserAnswer(self, incorrectId['question_id'], 0) for incorrectId in incorrectIds]
     

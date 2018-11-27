@@ -5,13 +5,12 @@ const dialog = $( "#login-dialog" ).dialog({
 });
 
 dialog.find( "form" ).on( "submit", function( event ) {
-   debugger;
    event.preventDefault();
    $.ajax({
          type: 'POST',
-         url: 'http://127.0.0.1:5000/login',
+         url: 'login',
          data: $(this).serialize(),
-         success: get_question
+         success: () => get_question('similar')
       });
    dialog.dialog( "close" );
 });

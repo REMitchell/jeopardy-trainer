@@ -19,9 +19,9 @@ body {
     margin-left: 100px;
 }
 
- #randomQuestion:hover {
-     background: rgb(220, 132, 132);
- }
+#similarQuestion:hover {
+    background: rgb(220, 132, 132);
+}
 
 #question-wrapper {
     font-size: 20px;

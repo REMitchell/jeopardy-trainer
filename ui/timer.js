@@ -14,7 +14,6 @@ start_timer = () => {
         $('#progressbar').progressbar('option', 'value', timeleft);
         if(timeleft <= 0) {
             // Question not answered
-            debugger;
             clearInterval(timer);
             evaluate_answer();
         }
